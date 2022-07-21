@@ -1,53 +1,32 @@
 package com.example.zhang.springdemo.controller;
 
 import com.example.zhang.springdemo.dto.PaginationDTO;
-import com.example.zhang.springdemo.dto.QuestionDTO;
-import com.example.zhang.springdemo.mapper.QuestionMapper;
-import com.example.zhang.springdemo.mapper.UserMapper;
-import com.example.zhang.springdemo.model.Question;
-import com.example.zhang.springdemo.model.User;
 import com.example.zhang.springdemo.service.QuestionService;
-import org.apache.catalina.WebResourceRoot;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+
+
 
 @Controller
 public class IndexController {
 
     @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
     private QuestionService questionService;
 
     @GetMapping("/")  //index和根目录
-    public String index(HttpServletRequest request,
-                        Model model,
+    public String index(Model model,
                         @RequestParam(name ="page",defaultValue = "1") Integer page,
                         @RequestParam(name = "size",defaultValue = "5") Integer size){
-        Cookie[] cookies = request.getCookies();
-        if(cookies != null && cookies.length == 0){
-            for(Cookie cookie : cookies) {
-                if (cookie.getName().equals("token")) {//判断是否拿到token的cookie,通过token来获取user；
-                    String token = cookie.getValue();
-                    User user = userMapper.findByToken(token);//在数据库中查找是否存在token这条记录
-                    if (user != null) {//如果存在将user放入session中；
-                        request.getSession().setAttribute("user", user);
-                    }
-                    break;
-                }
-            }
-        }
 
         PaginationDTO pagination= questionService.list(page,size);
         model.addAttribute("pagination",pagination);
+        System.out.println("||||||||||||||||||||||");
+        System.out.println(pagination.getQuestions());
         return "index";
     }
 }
