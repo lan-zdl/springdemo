@@ -7,7 +7,7 @@
     <context id="DB2Tables" targetRuntime="MyBatis3">
         <plugin type="org.mybatis.generator.plugins.RowBoundsPlugin"></plugin>
         <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
-                        connectionURL="jdbc:mysql://localhost:3306/springdemo"
+                        connectionURL="jdbc:mysql://localhost:3306/springdemo?serverTimezone=UTC"
                         userId="root"
                         password="l1871159858">
             <property name="nullCatalogMeansCurrent" value="true" />
@@ -33,5 +33,6 @@
         <table schema="springdemo" tableName="user" domainObjectName="User" ></table>
         <table schema="springdemo" tableName="question" domainObjectName="Question" ></table>
         <table schema="springdemo" tableName="comment" domainObjectName="Comment" ></table>
+        <table schema="springdemo" tableName="notification" domainObjectName="Notification" ></table>
     </context>
 </generatorConfiguration>

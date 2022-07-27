@@ -23,7 +23,7 @@ public class UserService {
         if(users.size() == 0) {
             userMapper.insert(user);//将用户信息存储到数据库中
         }else {
-            user = users.get(0);
+            User dbuser = users.get(0);
             User updateUser = new User();
             updateUser.setGmtModified(System.currentTimeMillis());
             updateUser.setAvatarUrl(user.getAvatarUrl());
@@ -31,7 +31,7 @@ public class UserService {
             updateUser.setToken(user.getToken());
             UserExample example = new UserExample();
             example.createCriteria()
-                    .andIdEqualTo(user.getId());
+                    .andIdEqualTo(dbuser.getId());
             userMapper.updateByExampleSelective(updateUser,example);
         }
     }

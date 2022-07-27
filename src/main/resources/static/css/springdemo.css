@@ -1,5 +1,5 @@
 body {
-    background-color: navajowhite;
+    background-color: whitesmoke;
 }
 .main {
     background-color: white;
@@ -14,6 +14,9 @@ body {
     width: 38px;
     height: 38px;
 }
+.media-body {
+    padding-top: 10px;
+}
 .text-desc {
     font-size: 12px;
     font-weight: normal;
@@ -23,9 +26,74 @@ body {
     margin-top: 15px;
 }
 .springdemo-menu{
+    diaplay: block;
     color: #999;
     font-size: 13px;
+    margin-bottom: 15px;
 }
 .jumbotron{
     margin: 50px;
+}
+
+.comment{
+    margin: 10px 0;
+}
+.btn-comment {
+    float: right;
+    margin-bottom: 10px;
+}
+.comments{
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+.comment-sp{
+    margin-top: 0;
+}
+.menu {
+    color: #999;
+    margin-top: 5px;
+}
+.menu .icon{
+    margin-right: 6px;
+    font-size: 15px;
+    cursor: pointer;
+}
+.menu .icon:hover{
+    color: #499ef3;
+}
+.menu .comment-icon {
+    font-size: 15px;
+    cursor: pointer;
+}
+.menu .comment-icon:hover {
+    color: #499ef3;
+}
+.menu .active{
+    color: #499ef3;
+}
+.question-title {
+    margin-top: 25px;
+}
+
+.question-tag {
+    margin-right: 5px;
+}
+
+.sub-comments{
+    border-radius: 5px;
+    margin-top: 10px;
+    border: 1px solid #eee;
+    padding-top: 15px;
+    margin-bottom: 15px;
+}
+.sub-comments .btn{
+    margin:10px 0;
+}
+.question-related {
+    line-height: 20px;
+    font-size: 12px;
+    margin-left: 0;
+    list-style: none;
+    padding-left: 0;
 }

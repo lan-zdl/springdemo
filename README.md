@@ -28,3 +28,12 @@
 ##bash
 
 mvn -Dmybatis.generator.overwrite=true mybatis-generator:generate
+执行时出现时区问题：执行set global time_zone='+8:00'
+
+
+问题：
+
+开始使用注解的方式，
+
+当执行阅读数量增加时，一开始是将数据库中的viewCount提取来进行阅读数增加操作，这样多个用户同时打开这个问题的时候，
+阅读量的增加就会出现问题，后面改用直接在数据库中进行update操作，每次访问这个问题数据库中的view_count直接加1

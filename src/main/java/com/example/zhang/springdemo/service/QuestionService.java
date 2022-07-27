@@ -2,6 +2,7 @@ package com.example.zhang.springdemo.service;
 
 import com.example.zhang.springdemo.dto.PaginationDTO;
 import com.example.zhang.springdemo.dto.QuestionDTO;
+import com.example.zhang.springdemo.dto.QuestionQueryDTO;
 import com.example.zhang.springdemo.exception.CustomizeErrorCode;
 import com.example.zhang.springdemo.exception.CustomizeException;
 import com.example.zhang.springdemo.mapper.QuestionExtMapper;
@@ -11,13 +12,16 @@ import com.example.zhang.springdemo.model.Question;
 import com.example.zhang.springdemo.model.QuestionExample;
 import com.example.zhang.springdemo.model.User;
 import com.example.zhang.springdemo.model.UserExample;
+import com.mysql.cj.util.StringUtils;
 import org.apache.ibatis.session.RowBounds;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -32,12 +36,21 @@ public class QuestionService {//组装question和user时候 需要一个中间�
     @Autowired
     private QuestionExtMapper questionExtMapper;
 
-    public PaginationDTO list(Integer page, Integer size) {
+    public PaginationDTO list1(String search,Integer page, Integer size) {
+
+        if(!StringUtils.isNullOrEmpty(search)) {
+            String[] tags =  search.split(" ");//以“,”分离标签
+            search = Arrays.stream(tags).collect(Collectors.joining("|"));//将分离的标签使用|连接
+        }
 
         PaginationDTO paginationDTO = new PaginationDTO();
+
         Integer totalPage;
 
-        Integer totalCount = (int)questionMapper.countByExample(new QuestionExample());
+        QuestionQueryDTO questionQueryDTO =new QuestionQueryDTO();
+        questionQueryDTO.setSearch(search);
+
+        Integer totalCount = questionExtMapper.countBySearch(questionQueryDTO);
         if(totalCount % size == 0) {
             totalPage = totalCount / size;
         }else {
@@ -54,13 +67,14 @@ public class QuestionService {//组装question和user时候 需要一个中间�
 
         //size*(page-1)
         Integer offset = Math.max(0,size * (page - 1));
-
+//        QuestionExample questionExample = new QuestionExample();
+//        questionExample.setOrderByClause("gmt_create desc");
+        questionQueryDTO.setSize(size);
+        questionQueryDTO.setPage(offset);
         //在数据库中定义了一个text类型的字段：使用selectByExampleWithRowbounds方法查出来的数据为null，应该使用selectByExampleWithBLOBsWithRowbounds
-        List<Question> questions = questionMapper.selectByExampleWithBLOBsWithRowbounds(new QuestionExample(),new RowBounds(offset,size));//使用Mybatis的插件完成分页
-        System.out.println(questions.get(0).getDescription());
+        List<Question> questions = questionExtMapper.selectBySearch(questionQueryDTO);//使用Mybatis的插件完成分页
         List<QuestionDTO> questionDTOList = new ArrayList<>();
         for(Question question : questions) {
-            System.out.println(question.getDescription());
             UserExample userExample = new UserExample();
             userExample.createCriteria()
                     .andAccountIdEqualTo(question.getCreator());
@@ -71,10 +85,11 @@ public class QuestionService {//组装question和user时候 需要一个中间�
             questionDTO.setUser(user);
             questionDTOList.add(questionDTO);
         }
-        paginationDTO.setQuestions(questionDTOList);
+        paginationDTO.setData(questionDTOList);
         System.out.println(paginationDTO.getTotalPage());
         return paginationDTO;
     }
+
 
     public PaginationDTO list(String userAccountId, Integer page, Integer size) {
         PaginationDTO paginationDTO = new PaginationDTO();
@@ -118,17 +133,17 @@ public class QuestionService {//组装question和user时候 需要一个中间�
             questionDTOList.add(questionDTO);
         }
 
-        paginationDTO.setQuestions(questionDTOList);
+        paginationDTO.setData(questionDTOList);
         System.out.println(paginationDTO.getTotalPage());
         return paginationDTO;
 
     }
 
-    public QuestionDTO getById(Integer id) {
+    public QuestionDTO getById(Long id) {
 
         Question question = questionMapper.selectByPrimaryKey(id);
         if(question == null) {
-            throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUNT);
+            throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
         }
         QuestionDTO questionDTO = new QuestionDTO();
         BeanUtils.copyProperties(question,questionDTO);
@@ -146,6 +161,9 @@ public class QuestionService {//组装question和user时候 需要一个中间�
             //创建
             question.setGmtCreate(System.currentTimeMillis());
             question.setGmtModified(question.getGmtCreate());
+            question.setLikeCount(0);
+            question.setViewCount(0);
+            question.setCommentCount(0);
             questionMapper.insert(question);
         }else {
             //更新
@@ -159,15 +177,37 @@ public class QuestionService {//组装question和user时候 需要一个中间�
                     .andIdEqualTo(question.getId());
             int update = questionMapper.updateByExampleSelective(updateQuestion,questionExample);
             if (update != 1) {
-                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUNT);
+                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
             }
         }
     }
 
-    public void incView(Integer id) {
+        public void incView(Long id) {
         Question question = new Question();
         question.setId(id);
         question.setViewCount(1);
         questionExtMapper.incView(question);
+    }
+
+    public List<QuestionDTO> selectRelated(QuestionDTO queryDTO) {
+        if(StringUtils.isNullOrEmpty(queryDTO.getTag())){
+            return new ArrayList<>();
+        }
+
+        String[] tags =  queryDTO.getTag().split(",");//以“,”分离标签
+        String regexTag = Arrays.stream(tags).collect(Collectors.joining("|"));//将分离的标签使用|连接
+        Question question = new Question();
+        question.setId(queryDTO.getId());
+        question.setTag(regexTag); //将各个标签用|连接后放入question对象的tag中
+
+        //在数据库中查询相关联问题
+        List<Question> questions = questionExtMapper.selectRelated(question);
+        List<QuestionDTO> questionDTOS = questions.stream().map(q ->{ //将查询出的问题放入questionDTO中，并questionDTO加入列表中
+            QuestionDTO questionDTO = new QuestionDTO();
+            BeanUtils.copyProperties(q,questionDTO);
+            return questionDTO;
+        }).collect((Collectors.toList()));
+        return questionDTOS;
+
     }
 }

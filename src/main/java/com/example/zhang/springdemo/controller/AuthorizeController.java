@@ -33,9 +33,6 @@ public class AuthorizeController {
     private String redirectUri;
 
     @Autowired
-    private UserMapper userMapper;
-
-    @Autowired
     private UserService userService;
 
     @GetMapping("/callback")
@@ -62,9 +59,6 @@ public class AuthorizeController {
             user.setGmtModified(user.getGmtCreate());
             user.setAvatarUrl(githubUser.getAvatar_url());
             userService.createorupdate(user);
-            System.out.println(user.getId());
-            System.out.println(user.getId());
-            System.out.println(user.getId());
             Cookie cookie=new Cookie("token",token);
             response.addCookie(cookie);//将token放入cookie中
             request.getSession().setAttribute("user", user);//对user赋值
